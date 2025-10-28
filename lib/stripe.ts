@@ -1,14 +1,31 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+// Lazily initialize Stripe to avoid throwing at module import time (helps builds on CI)
+let _stripeInstance: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!_stripeInstance) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) {
+      throw new Error('STRIPE_SECRET_KEY is not defined in environment variables');
+    }
+    _stripeInstance = new Stripe(key, {
+      apiVersion: '2025-09-30.clover',
+      typescript: true,
+    });
+  }
+  return _stripeInstance;
 }
 
-// Initialize Stripe with the secret key
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-09-30.clover',
-  typescript: true,
-});
+// Provide a transparent proxy so existing imports that expect a `stripe` instance
+// (e.g. `stripe.customers.list(...)`) keep working while we lazy-init underneath.
+export const stripe = new Proxy({}, {
+  get(_, prop: string) {
+    const inst = getStripe();
+    // @ts-ignore - forward property access to Stripe instance
+    return (inst as any)[prop];
+  },
+}) as unknown as Stripe;
 
 /**
  * Create or retrieve a Stripe customer for a user
