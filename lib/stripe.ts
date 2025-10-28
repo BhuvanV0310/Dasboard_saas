@@ -22,8 +22,7 @@ function getStripe(): Stripe {
 export const stripe = new Proxy({}, {
   get(_, prop: string) {
     const inst = getStripe();
-    // @ts-ignore - forward property access to Stripe instance
-    return (inst as any)[prop];
+  return (inst as any)[prop];
   },
 }) as unknown as Stripe;
 
