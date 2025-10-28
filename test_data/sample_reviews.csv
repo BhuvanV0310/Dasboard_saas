@@ -1,0 +1,21 @@
+date,branch,review,rating,sentiment,category
+2025-10-01,Branch A,Great service and friendly staff,5,Positive,Service
+2025-10-01,Branch B,Long wait times but good quality,3,Neutral,Wait Time
+2025-10-02,Branch A,Excellent experience overall,5,Positive,Overall
+2025-10-02,Branch C,Poor customer service,2,Negative,Service
+2025-10-03,Branch A,Very satisfied with the product,5,Positive,Product
+2025-10-03,Branch B,Average experience nothing special,3,Neutral,Overall
+2025-10-04,Branch A,Outstanding service highly recommend,5,Positive,Service
+2025-10-04,Branch C,Disappointed with the quality,2,Negative,Product
+2025-10-05,Branch B,Good value for money,4,Positive,Value
+2025-10-05,Branch A,Best branch in the area,5,Positive,Overall
+2025-10-06,Branch C,Not happy with wait times,2,Negative,Wait Time
+2025-10-06,Branch B,Decent service could be better,3,Neutral,Service
+2025-10-07,Branch A,Always a pleasure to visit,5,Positive,Overall
+2025-10-07,Branch C,Staff were unhelpful,2,Negative,Service
+2025-10-08,Branch B,Good selection and pricing,4,Positive,Product
+2025-10-09,Branch A,Exceptional customer care,5,Positive,Service
+2025-10-09,Branch C,Below average experience,2,Negative,Overall
+2025-10-10,Branch B,Met my expectations,4,Positive,Overall
+2025-10-10,Branch A,Will definitely return,5,Positive,Overall
+2025-10-10,Branch C,Needs improvement in many areas,2,Negative,Overall
