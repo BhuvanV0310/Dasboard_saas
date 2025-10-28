@@ -1,3 +1,12 @@
 pandas>=1.3
 textblob>=0.15
 matplotlib>=3.0
+
+# Web server for model inference
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+gunicorn>=21.2.0
+
+# Optional: add your model/runtime libs here (torch, transformers, sentence-transformers, etc.)
+# torch>=2.2.0
+# transformers>=4.50.0
