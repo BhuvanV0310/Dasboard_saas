@@ -1,14 +1,30 @@
 import os
 from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI()
 
+# CORS: allow the Vercel frontend to call this backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://dasboard-saas-fhmx.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 # Simple health endpoint used by Render's health checks
 @app.get("/health")
 def health():
     return {"ok": True}
+
+
+@app.get("/ping")
+def ping():
+    """Simple health-check used by browser/monitoring to confirm service is reachable."""
+    return {"status": "ok"}
 
 
 class InferenceRequest(BaseModel):

@@ -61,7 +61,13 @@ export async function GET(req: Request, context: any) {
   }
 
   // Parse CSV for detailed analytics
-  const rows: Record<string, any>[] = [];
+  // To avoid loading very large CSVs fully into memory (which can cause
+  // serverless timeouts or OOMs), sample rows up to SAMPLE_LIMIT while
+  // still counting the total number of rows. Sampling keeps analytics fast
+  // for large files while preserving representative results.
+  const SAMPLE_LIMIT = 5000; // adjust as needed
+  const sampledRows: Record<string, any>[] = [];
+  let totalRowCount = 0;
   const stream = createReadStream(upload.filepath);
 
   await new Promise((resolve, reject) => {
@@ -69,10 +75,14 @@ export async function GET(req: Request, context: any) {
       .pipe(parse({ headers: true }))
       .on('error', reject)
       .on('data', (row: Record<string, any>) => {
-        rows.push(row);
+        totalRowCount++;
+        if (sampledRows.length < SAMPLE_LIMIT) sampledRows.push(row);
       })
       .on('end', resolve);
   });
+
+  // Use sampledRows for downstream analysis but report accurate total rows
+  const rows = sampledRows;
 
   // Analyze columns
   const columns = Object.keys(rows[0] || {});
@@ -252,7 +262,7 @@ export async function GET(req: Request, context: any) {
   // AI summary (best-effort; gracefully fallback inside generator)
   const aiSummary = await generateAISummary({
     filename: upload.filename,
-    rowCount: rows.length,
+    rowCount: totalRowCount,
     columns,
     sentimentSummary,
     sentimentBreakdown: sentimentBreakdown ?? undefined,
@@ -261,8 +271,7 @@ export async function GET(req: Request, context: any) {
     branchStats,
     columnStats,
   });
-
-  logInfo('CSV analytics generated', { uploadId: id, rowCount: rows.length });
+  logInfo('CSV analytics generated', { uploadId: id, rowCount: totalRowCount, sampled: rows.length < totalRowCount ? true : false });
 
     return NextResponse.json({
     upload: {
@@ -273,7 +282,7 @@ export async function GET(req: Request, context: any) {
       summaryJson: upload.summaryJson,
     },
     analytics: {
-      rowCount: rows.length,
+      rowCount: totalRowCount,
       columnCount: columns.length,
       columns,
       columnTypes,
