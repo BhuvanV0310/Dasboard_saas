@@ -2,7 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import ReviewAnalytics from './components/ReviewAnalytics';
-const BASE_URL = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : "https://dasboard-saas-1.onrender.com";
+const BASE_ENV = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : undefined;
+const buildUrl = (path: string) => BASE_ENV ? `${BASE_ENV}${path}` : path;
 
 type SentimentLabel = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
 
@@ -31,7 +32,7 @@ export default function ReviewsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/auth/session`);
+        const res = await fetch(buildUrl('/api/auth/session'));
         const data = await res.json();
         const role = data?.user?.role ?? null;
         setSessionRole(role);
@@ -46,7 +47,7 @@ export default function ReviewsPage() {
   // Load reviews
   const loadReviews = async () => {
     try {
-  const res = await fetch(`${BASE_URL}/api/reviews`, { cache: 'no-store' });
+  const res = await fetch(buildUrl('/api/reviews'), { cache: 'no-store' });
   const data = await res.json();
       setReviews(data.reviews || []);
     } catch (e) {
@@ -66,7 +67,7 @@ export default function ReviewsPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`${BASE_URL}/api/reviews`, {
+      const res = await fetch(buildUrl('/api/reviews'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

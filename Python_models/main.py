@@ -13,6 +13,8 @@ app = FastAPI(title="Python Models Service")
 # Allowed origins (restrict to known frontends). Add more origins via ALLOWED_ORIGINS env if needed.
 # NOTE: keep this list tight in production to avoid CORS risks.
 VERCEL_ORIGIN = "https://dasboard-saas-fhmx-j8gwq8h9h-bhuvans-projects-6eee2ee8.vercel.app"
+# Common Vercel preview / deployed origin (also allow short hostname seen in production)
+VERCEL_ORIGIN_SHORT = "https://dasboard-saas-fhmx.vercel.app"
 # Frontend deployed on Render
 RENDER_ORIGIN = "https://dasboard-saas-1.onrender.com"
 LOCAL_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
@@ -20,7 +22,7 @@ LOCAL_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
 extra = os.environ.get("ALLOWED_ORIGINS", "")
 extra_list: List[str] = [o.strip() for o in extra.split(",") if o.strip()] if extra else []
 
-ALLOW_ORIGINS = [VERCEL_ORIGIN, RENDER_ORIGIN] + LOCAL_ORIGINS + extra_list
+ALLOW_ORIGINS = [VERCEL_ORIGIN, VERCEL_ORIGIN_SHORT, RENDER_ORIGIN] + LOCAL_ORIGINS + extra_list
 
 app.add_middleware(
     CORSMiddleware,

@@ -52,9 +52,10 @@ interface CsvAnalytics {
 }
 
 async function fetchAnalytics(id: string) {
-  const BASE_URL = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : "https://dasboard-saas-1.onrender.com";
+  const BASE_ENV = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : undefined;
+  const buildUrl = (path: string) => BASE_ENV ? `${BASE_ENV}${path}` : path;
   try {
-    const res = await fetch(`${BASE_URL}/api/analytics/csv/${id}`);
+    const res = await fetch(buildUrl(`/api/analytics/csv/${id}`));
     let data: any = null;
     try { data = await res.json(); } catch { /* ignore */ }
     if (!res.ok) {

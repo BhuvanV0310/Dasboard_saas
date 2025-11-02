@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
-const BASE_URL = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : "https://dasboard-saas-1.onrender.com";
+const BASE_ENV = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : undefined;
+const buildUrl = (path: string) => BASE_ENV ? `${BASE_ENV}${path}` : path;
 import UploadProgressBar from "./UploadProgressBar";
 
 export default function UploadCard() {
@@ -40,7 +41,7 @@ export default function UploadCard() {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
-      const res = await fetch(`${BASE_URL}/api/uploads`, {
+      const res = await fetch(buildUrl('/api/uploads'), {
         method: "POST",
         body: formData,
         signal: controller.signal,

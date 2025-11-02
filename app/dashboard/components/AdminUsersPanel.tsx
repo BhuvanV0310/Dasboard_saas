@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-const BASE_URL = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : "https://dasboard-saas-1.onrender.com";
+const BASE_ENV = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : undefined;
+const buildUrl = (path: string) => BASE_ENV ? `${BASE_ENV}${path}` : path;
 import { useRouter } from 'next/navigation';
 
 type User = {
@@ -22,7 +23,7 @@ export default function AdminBranchesPanel() {
   const fetchBranches = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/uploads`);
+  const res = await fetch(buildUrl('/api/uploads'));
       if (res.ok) {
         const data = await res.json();
         // ensure status is present
@@ -63,7 +64,7 @@ export default function AdminBranchesPanel() {
     if (!confirm(`Delete ${ids.length} selected branch(es)? This will remove the CSV and analytics.`)) return;
       try {
       await Promise.all(ids.map(async (id) => {
-        const res = await fetch(`${BASE_URL}/api/uploads/${id}`, { method: 'DELETE' });
+  const res = await fetch(buildUrl(`/api/uploads/${id}`), { method: 'DELETE' });
         if (!res.ok) throw new Error('Failed to delete branch');
       }));
       setSelected({});
@@ -80,7 +81,7 @@ export default function AdminBranchesPanel() {
     if (!confirm(`Delete ${emails.length} selected user(s)? This cannot be undone.`)) return;
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
-      const res = await fetch(`${BASE_URL}/api/auth/delete-user`, {
+  const res = await fetch(buildUrl('/api/auth/delete-user'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
         body: JSON.stringify({ emails }),
@@ -105,7 +106,7 @@ export default function AdminBranchesPanel() {
   const tryDemoAdmin = async () => {
       try {
       // Attempt a convenience demo-admin login (only works if that account/password exists in data/users.json)
-      const res = await fetch(`${BASE_URL}/api/auth/login`, {
+  const res = await fetch(buildUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'test-admin@example.com', password: 'TestAdmin123!' }),
@@ -209,7 +210,7 @@ export default function AdminBranchesPanel() {
                               const newStatus = prevStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
                               // optimistic
                               setBranches((prev) => prev.map((p) => (p.id === b.id ? { ...p, status: newStatus } : p)));
-                              const res = await fetch(`${BASE_URL}/api/uploads/${b.id}`, {
+                              const res = await fetch(buildUrl(`/api/uploads/${b.id}`), {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ action: 'toggle' }),

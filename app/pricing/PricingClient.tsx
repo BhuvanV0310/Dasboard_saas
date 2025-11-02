@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
-const BASE_URL = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : "https://dasboard-saas-1.onrender.com";
+const BASE_ENV = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : undefined;
+const buildUrl = (path: string) => BASE_ENV ? `${BASE_ENV}${path}` : path;
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -39,7 +40,7 @@ export default function PricingClient() {
 
   const fetchPlans = async () => {
     try {
-  const response = await fetch(`${BASE_URL}/api/plans`);
+      const response = await fetch(buildUrl('/api/plans'));
       if (!response.ok) throw new Error('Failed to fetch plans');
       const data = await response.json();
       setPlans(data.plans || []);
@@ -57,7 +58,7 @@ export default function PricingClient() {
 
     try {
       // Create checkout session
-      const response = await fetch(`${BASE_URL}/api/stripe/create-checkout-session`, {
+      const response = await fetch(buildUrl('/api/stripe/create-checkout-session'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
