@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import useSWR from "swr";
+const BASE_URL = "https://dasboard-saas-1.onrender.com";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -149,10 +150,15 @@ function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const { data: uploads } = useSWR(role === 'admin' ? '/api/uploads' : null, async (url) => {
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    return await res.json();
+  const { data: uploads } = useSWR(role === 'admin' ? `${BASE_URL}/api/uploads` : null, async (url) => {
+    try {
+      const res = await fetch(url as string);
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (e) {
+      console.error('Error fetching uploads for sidebar:', e);
+      return [];
+    }
   }, { refreshInterval: 10000 });
 
   const csvBranches: DropdownItem[] = (uploads || [])

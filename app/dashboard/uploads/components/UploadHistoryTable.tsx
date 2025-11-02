@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import useSWR from "swr";
+const BASE_URL = "https://dasboard-saas-1.onrender.com";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -17,9 +18,14 @@ interface Upload {
 }
 
 async function fetchUploads(userId: string) {
-  const res = await fetch(`/api/uploads?userId=${userId}`);
-  if (!res.ok) throw new Error("Failed to fetch uploads");
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/api/uploads?userId=${userId}`);
+    if (!res.ok) throw new Error("Failed to fetch uploads");
+    return res.json();
+  } catch (e) {
+    console.error("Error fetching uploads:", e);
+    throw e;
+  }
 }
 
 export default function UploadHistoryTable({ userId }: { userId: string }) {
@@ -32,7 +38,7 @@ export default function UploadHistoryTable({ userId }: { userId: string }) {
     if (!confirmed) return;
     try {
       setDeletingId(id);
-      const res = await fetch(`/api/uploads/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${BASE_URL}/api/uploads/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.error || 'Failed to delete upload');
@@ -40,6 +46,7 @@ export default function UploadHistoryTable({ userId }: { userId: string }) {
       toast.success('Upload deleted');
       await mutate();
     } catch (e: any) {
+      console.error('Error deleting upload:', e);
       toast.error(e?.message || 'Failed to delete');
     } finally {
       setDeletingId(null);

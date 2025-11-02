@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+const BASE_URL = "https://dasboard-saas-1.onrender.com";
 import { useRouter } from 'next/navigation';
 
 type User = {
@@ -21,7 +22,7 @@ export default function AdminBranchesPanel() {
   const fetchBranches = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/uploads');
+      const res = await fetch(`${BASE_URL}/api/uploads`);
       if (res.ok) {
         const data = await res.json();
         // ensure status is present
@@ -29,8 +30,10 @@ export default function AdminBranchesPanel() {
         setError(null);
       } else {
         setError('Failed to fetch branches');
+        console.error('Failed to fetch branches: non-ok response');
       }
     } catch (e) {
+      console.error('Failed to fetch branches:', e);
       setError('Failed to fetch branches');
     } finally {
       setLoading(false);
@@ -58,15 +61,16 @@ export default function AdminBranchesPanel() {
     const ids = Object.keys(selected).filter((k) => selected[k]);
     if (!ids.length) return;
     if (!confirm(`Delete ${ids.length} selected branch(es)? This will remove the CSV and analytics.`)) return;
-    try {
+      try {
       await Promise.all(ids.map(async (id) => {
-        const res = await fetch(`/api/uploads/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${BASE_URL}/api/uploads/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error('Failed to delete branch');
       }));
       setSelected({});
       setDeleteMode(false);
       fetchBranches();
     } catch (e) {
+      console.error('Error deleting branches:', e);
       alert('Error deleting branch(es)');
     }
   };
@@ -76,7 +80,7 @@ export default function AdminBranchesPanel() {
     if (!confirm(`Delete ${emails.length} selected user(s)? This cannot be undone.`)) return;
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
-      const res = await fetch('/api/auth/delete-user', {
+      const res = await fetch(`${BASE_URL}/api/auth/delete-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
         body: JSON.stringify({ emails }),
@@ -86,9 +90,12 @@ export default function AdminBranchesPanel() {
         setSelected({});
         fetchBranches();
       } else {
-        alert('Failed to delete users: ' + (await res.text()));
+        const text = await res.text().catch(() => '');
+        console.error('Failed to delete users:', text);
+        alert('Failed to delete users: ' + text);
       }
     } catch (e) {
+      console.error('Error deleting users:', e);
       alert('Error deleting users');
     }
   };
@@ -96,9 +103,9 @@ export default function AdminBranchesPanel() {
   const router = useRouter();
 
   const tryDemoAdmin = async () => {
-    try {
+      try {
       // Attempt a convenience demo-admin login (only works if that account/password exists in data/users.json)
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'test-admin@example.com', password: 'TestAdmin123!' }),
@@ -197,12 +204,12 @@ export default function AdminBranchesPanel() {
                           aria-checked={b.status === 'ACTIVE'}
                           checked={b.status === 'ACTIVE'}
                           onChange={async () => {
-                            try {
+                              try {
                               const prevStatus = b.status;
                               const newStatus = prevStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
                               // optimistic
                               setBranches((prev) => prev.map((p) => (p.id === b.id ? { ...p, status: newStatus } : p)));
-                              const res = await fetch(`/api/uploads/${b.id}`, {
+                              const res = await fetch(`${BASE_URL}/api/uploads/${b.id}`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ action: 'toggle' }),
@@ -213,6 +220,7 @@ export default function AdminBranchesPanel() {
                                 alert('Failed to update branch status');
                               }
                             } catch (err) {
+                              console.error('Failed updating branch status:', err);
                               setBranches((prev) => prev.map((p) => (p.id === b.id ? { ...p, status: b.status } : p)));
                               alert('Failed to update branch status');
                             }

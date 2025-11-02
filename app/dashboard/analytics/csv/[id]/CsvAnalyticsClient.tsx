@@ -52,16 +52,22 @@ interface CsvAnalytics {
 }
 
 async function fetchAnalytics(id: string) {
-  const res = await fetch(`/api/analytics/csv/${id}`);
-  let data: any = null;
-  try { data = await res.json(); } catch { /* ignore */ }
-  if (!res.ok) {
-    const err: any = new Error(data?.error || `Request failed with ${res.status}`);
-    err.status = res.status;
-    err.details = data;
-    throw err;
+  const BASE_URL = "https://dasboard-saas-1.onrender.com";
+  try {
+    const res = await fetch(`${BASE_URL}/api/analytics/csv/${id}`);
+    let data: any = null;
+    try { data = await res.json(); } catch { /* ignore */ }
+    if (!res.ok) {
+      const err: any = new Error(data?.error || `Request failed with ${res.status}`);
+      err.status = res.status;
+      err.details = data;
+      throw err;
+    }
+    return data;
+  } catch (e) {
+    console.error("Error fetching analytics:", e);
+    throw e;
   }
-  return data;
 }
 
 export default function CsvAnalyticsClient({ id }: { id: string }) {

@@ -11,7 +11,8 @@ import BranchPerformanceBar from './components/BranchPerformanceBar';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const BASE_URL = "https://dasboard-saas-1.onrender.com";
+const fetcher = (url: string) => fetch(`${BASE_URL}${url}`).then(res => res.json());
 
 export default function AnalyticsDashboard() {
   const { data: session, status } = useSession();

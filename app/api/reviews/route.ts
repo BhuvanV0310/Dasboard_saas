@@ -1,3 +1,56 @@
+import { NextResponse } from 'next/server';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://dasboard-saas-1.onrender.com";
+
+async function proxyRequest(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const target = `${BASE_URL}${url.pathname}${url.search}`;
+
+    const forwardedHeaders: Record<string, string> = {};
+    for (const [key, value] of Array.from(req.headers.entries())) {
+      if (key.toLowerCase() === 'host') continue;
+      forwardedHeaders[key] = value;
+    }
+
+    let body: ArrayBuffer | undefined = undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      try {
+        body = await req.arrayBuffer();
+      } catch (e) {}
+    }
+
+    const res = await fetch(target, {
+      method: req.method,
+      headers: forwardedHeaders,
+      body: body ? Buffer.from(body) : undefined,
+      redirect: 'manual',
+    });
+
+    const responseHeaders: Record<string, string> = {};
+    res.headers.forEach((v, k) => {
+      if (k.toLowerCase() === 'transfer-encoding') return;
+      responseHeaders[k] = v;
+    });
+
+    return new NextResponse(res.body, { status: res.status, headers: responseHeaders });
+  } catch (err) {
+    console.error('Proxy to backend failed:', err);
+    return NextResponse.json({ error: 'Backend proxy failed', details: String(err) }, { status: 502 });
+  }
+}
+
+export async function GET(req: Request) {
+  return proxyRequest(req);
+}
+
+export async function POST(req: Request) {
+  return proxyRequest(req);
+}
+
+/*
+Original serverless implementation (commented out). Keep for reference and possible restoration.
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
@@ -125,3 +178,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+*/

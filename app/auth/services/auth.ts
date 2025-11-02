@@ -1,9 +1,11 @@
 import { AuthResponse, RegisterPayload } from "../types";
 
+const BASE_URL = "https://dasboard-saas-1.onrender.com";
+
 export async function loginUser(email: string, password: string, adminKey?: string) {
   try {
-    const base = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL) : '';
-    const url = base ? `${base.replace(/\/+$/, '')}/api/auth/login` : '/api/auth/login';
+    const base = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL) : BASE_URL;
+  const url = base.replace(/\/+$/, '') + '/api/auth/login';
     const res = await fetch(url, { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' }, 
@@ -19,8 +21,8 @@ export async function loginUser(email: string, password: string, adminKey?: stri
 
 export async function registerUser(payload: any): Promise<AuthResponse> {
   try {
-    const base = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL) : '';
-    const url = base ? `${base.replace(/\/+$/, '')}/api/auth/register` : '/api/auth/register';
+    const base = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL) : BASE_URL;
+  const url = base.replace(/\/+$/, '') + '/api/auth/register';
     let options: RequestInit;
     // If payload is a FormData (contains files), send without content-type so browser sets multipart boundary
     if (payload instanceof FormData) {

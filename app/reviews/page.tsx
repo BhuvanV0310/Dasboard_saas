@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import ReviewAnalytics from './components/ReviewAnalytics';
+const BASE_URL = "https://dasboard-saas-1.onrender.com";
 
 type SentimentLabel = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
 
@@ -30,11 +31,12 @@ export default function ReviewsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch('/api/auth/session');
+        const res = await fetch(`${BASE_URL}/api/auth/session`);
         const data = await res.json();
         const role = data?.user?.role ?? null;
         setSessionRole(role);
-      } catch {
+      } catch (e) {
+        console.error('Error fetching session:', e);
         setSessionRole(null);
       }
     };
@@ -44,8 +46,8 @@ export default function ReviewsPage() {
   // Load reviews
   const loadReviews = async () => {
     try {
-      const res = await fetch('/api/reviews', { cache: 'no-store' });
-      const data = await res.json();
+  const res = await fetch(`${BASE_URL}/api/reviews`, { cache: 'no-store' });
+  const data = await res.json();
       setReviews(data.reviews || []);
     } catch (e) {
       console.error(e);
@@ -64,7 +66,7 @@ export default function ReviewsPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch('/api/reviews', {
+      const res = await fetch(`${BASE_URL}/api/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

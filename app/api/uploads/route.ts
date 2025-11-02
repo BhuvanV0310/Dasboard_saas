@@ -1,4 +1,64 @@
 import { NextResponse } from 'next/server';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://dasboard-saas-1.onrender.com";
+
+async function proxyRequest(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const target = `${BASE_URL}${url.pathname}${url.search}`;
+
+    // Forward headers (preserve cookies and auth)
+    const forwardedHeaders: Record<string, string> = {};
+    for (const [key, value] of Array.from(req.headers.entries())) {
+      const lower = key.toLowerCase();
+      if (lower === 'host') continue; // let fetch set host
+      forwardedHeaders[key] = value;
+    }
+
+    // Read body for non-GET/HEAD
+    let body: ArrayBuffer | undefined = undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      try {
+        body = await req.arrayBuffer();
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const res = await fetch(target, {
+      method: req.method,
+      headers: forwardedHeaders,
+      body: body ? Buffer.from(body) : undefined,
+      redirect: 'manual',
+    });
+
+    // Build response headers
+    const responseHeaders: Record<string, string> = {};
+    res.headers.forEach((v, k) => {
+      // filter hop-by-hop headers if needed
+      if (k.toLowerCase() === 'transfer-encoding') return;
+      responseHeaders[k] = v;
+    });
+
+    return new NextResponse(res.body, { status: res.status, headers: responseHeaders });
+  } catch (err) {
+    console.error('Proxy to backend failed:', err);
+    return NextResponse.json({ error: 'Backend proxy failed', details: String(err) }, { status: 502 });
+  }
+}
+
+export async function POST(req: Request) {
+  return proxyRequest(req);
+}
+
+export async function GET(req: Request) {
+  return proxyRequest(req);
+}
+
+/*
+Original serverless implementation (commented out). Keep for reference and possible restoration.
+
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth-helpers-server';
 import { logError, logInfo } from '@/lib/logger';
@@ -143,3 +203,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Failed to fetch uploads' }, { status: 500 });
   }
 }
+
+*/
