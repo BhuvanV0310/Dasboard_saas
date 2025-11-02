@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
-const BASE_URL = "https://dasboard-saas-1.onrender.com";
+const BASE_URL = typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_URL ? String(process.env.NEXT_PUBLIC_API_URL).replace(/\/+$/, '') : "https://dasboard-saas-1.onrender.com";
 import UploadProgressBar from "./UploadProgressBar";
 
 export default function UploadCard() {
